@@ -1,7 +1,7 @@
 package beans;
 
 /**
- * parseして得たデータの型を決めるクラス。
+ * parseして得たデータの型を決めるクラス。KmeansBean用。
  *
  * @author azarashi
  */
