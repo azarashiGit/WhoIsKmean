@@ -42,7 +42,7 @@ class DTO {
  * Kmeans全般を扱う予定のクラス
  * @author azarashi
  */
-public class Kmean {
+public class KmeansBean {
 
 	final String[] HEADER = new String[] { "data1", "data2" };
 
