@@ -1,5 +1,10 @@
 package beans;
 
+/**
+ * parseして得たデータの型を決めるクラス。
+ *
+ * @author azarashi
+ */
 public class DTO {
 	private Integer data1, data2;
 

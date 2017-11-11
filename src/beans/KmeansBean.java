@@ -68,18 +68,13 @@ public class KmeansBean {
 
 }
 
-class KmeansBeanTest {
-	public static void main(String args[]) {
-		File file = new File("C:\\Eclipse\\Eclipse_oxygen\\workspace\\WhoIsKmean\\csv\\test.csv");
-		KmeansBean.opencsvToStringArray(file);
-		KmeansBean.opencsvToBean(file);
-//		List axisName = new ArrayList();
+//class KmeansBeanTest {
+//	public static void main(String args[]) {
+//		File file = new File("C:\\Eclipse\\Eclipse_oxygen\\workspace\\WhoIsKmean\\csv\\test.csv");
+//		List<String[]> axisName = new ArrayList<String[]>();
 //		axisName = KmeansBean.opencsvToStringArray(file);
-//		List<DTO> data = new ArrayList();
+//		List<DTO> data = new ArrayList<DTO>();
 //		data = KmeansBean.opencsvToBean(file);
-//		System.out.println(axisName);
-//		System.out.println(data);
-
-	}
-
-}
+//	}
+//
+//}
