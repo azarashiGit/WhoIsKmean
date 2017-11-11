@@ -8,6 +8,7 @@ import java.util.List;
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.bean.ColumnPositionMappingStrategy;
 import au.com.bytecode.opencsv.bean.CsvToBean;
+
 /**
  * csvをparseする。
  * https://qiita.com/satio_koibuti/items/e90a9e30db289ac1b1f0参照
@@ -16,42 +17,27 @@ import au.com.bytecode.opencsv.bean.CsvToBean;
 
 /**
  * parseして得たデータの型を決めるクラス。
+ *
  * @author azarashi
  */
-class DTO {
-	private Integer data1, data2;
-
-	public Integer getData1() {
-		return data1;
-	}
-
-	public void setData1(Integer data1) {
-		this.data1 = data1;
-	}
-
-	public Integer getData2() {
-		return data2;
-	}
-
-	public void setData2(Integer data2) {
-		this.data2 = data2;
-	}
-}
 
 /**
  * Kmeans全般を扱う予定のクラス
+ *
  * @author azarashi
  */
 public class KmeansBean {
 
-	final String[] HEADER = new String[] { "data1", "data2" };
+	private static String[] header = new String[] { "data1", "data2" };
 
 	/**
 	 * csvファイルの1行目の項目名をリスト化
-	 * @param file CSVファイル
+	 *
+	 * @param file
+	 *            CSVファイル
 	 * @return 項目名のリスト
 	 */
-	List<String[]> opencsvToStringArray(File file) {
+	static List<String[]> opencsvToStringArray(File file) {
 		try {
 			CSVReader reader = new CSVReader(new InputStreamReader(new FileInputStream(file), "SJIS"));
 			return reader.readAll();
@@ -62,20 +48,38 @@ public class KmeansBean {
 
 	/**
 	 * csvファイルのデータをリスト化
-	 * @param file CSVファイル
+	 *
+	 * @param file
+	 *            CSVファイル
 	 * @return データのリスト
 	 */
-	List<DTO> opencsvToBean(File file) {
+	static List<DTO> opencsvToBean(File file) {
 		try {
 			CSVReader reader = new CSVReader(new InputStreamReader(new FileInputStream(file), "SJIS"), ',', '"', 1);
 			ColumnPositionMappingStrategy<DTO> strat = new ColumnPositionMappingStrategy<DTO>();
 			strat.setType(DTO.class);
-			strat.setColumnMapping(HEADER);
+			strat.setColumnMapping(header);
 			CsvToBean<DTO> csv = new CsvToBean<DTO>();
 			return csv.parse(strat, reader);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+}
+
+class KmeansBeanTest {
+	public static void main(String args[]) {
+		File file = new File("C:\\Eclipse\\Eclipse_oxygen\\workspace\\WhoIsKmean\\csv\\test.csv");
+		KmeansBean.opencsvToStringArray(file);
+		KmeansBean.opencsvToBean(file);
+//		List axisName = new ArrayList();
+//		axisName = KmeansBean.opencsvToStringArray(file);
+//		List<DTO> data = new ArrayList();
+//		data = KmeansBean.opencsvToBean(file);
+//		System.out.println(axisName);
+//		System.out.println(data);
+
 	}
 
 }
