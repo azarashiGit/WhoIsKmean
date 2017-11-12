@@ -166,6 +166,52 @@ public class KmeansBeanSimple {
 		}
 		return cog;
 	}
+
+	/**
+	 * 各データと各重心を最適にマッチングし、 各クラスタに所属するデータリストを更新する。 収束判定未実装
+	 *
+	 * @param cog[][]
+	 *            重心[クラスタ番号]={値1,値2}
+	 * @param data[][]
+	 *            データ[データ番号]={値1,値2}
+	 * @param cluster[][]
+	 *            クラスタ[クラスタ番号]={所属データの番号リスト}
+	 * @param headNum
+	 *            項目数
+	 * @param clusterNum
+	 *            クラスタ数
+	 * @param dataNum
+	 *            データ数
+	 *
+	 * @return クラスタ[クラスタ番号]={更新後の所属データの番号のリスト}
+	 */
+	public static int[][] updateCluster(int[][] cog, int[][] data, int[][] cluster, int headNum, int clusterNum,
+			int dataNum) {
+		// 距離=sqrt(Σ(cogの座標-dataの座標)^2)、今回は比べるだけなのでルートしません
+		double tmpdist = 0;
+		double dist = 0;
+		int updatedClusterNum = 99;
+		int updatedCluster[][] = new int[clusterNum][headNum];//更新後クラスタ、ArrayListじゃないのでclusterNum個の枠を確保...
+		int counter[] = new int[clusterNum];
+
+		for (int k = 0; k < dataNum; k++) {
+			for (int i = 0; i < clusterNum; i++) {
+				for (int j = 0; j < headNum; j++) {
+					tmpdist += Math.pow((cog[i][j] - data[k][j]), 2);
+				}
+				if (dist > tmpdist) {
+					dist = tmpdist;
+					updatedClusterNum = i;
+				}
+				tmpdist = 0;
+			}
+			updatedCluster[updatedClusterNum][counter[updatedClusterNum]] = k;
+			counter[updatedClusterNum]++;
+		}
+
+		return updatedCluster;
+	}
+
 }
 
 class KmeansBeanSimpleTest {
