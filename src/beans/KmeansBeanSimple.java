@@ -6,7 +6,8 @@ import java.io.FileReader;
 import java.io.IOException;
 
 /**
- * Kmeans全般を扱う予定のクラス
+ * Kmeans全般を扱う予定のクラス 今のところデータ数とクラスタ数に依存しないように書いている
+ * リストは使ってない、というか使いこなすスキルがない。2次元ががが 修正すべき項目：データをintからdoubleに
  *
  * @author azarashi
  */
@@ -92,7 +93,23 @@ public class KmeansBeanSimple {
 	}
 
 	/**
-	 * データをランダムにクラスタ分け
+	 * データをランダムにクラスタ分けしたときに、 各クラスタのデータ数の差が1以下になるように振り分けた場合の 1クラスタに入るデータ数の上限値を求める
+	 *
+	 * @param data[][]
+	 *            データ
+	 * @param clusterNum
+	 *            クラスタ数
+	 * @param dataNum
+	 *            データ数=csvLength-1
+	 * @return 1クラスタに入るデータ数の上限値
+	 */
+	public static int calcClusterLimitCount(int clusterNum, int dataNum) {
+		int clusterLimitCount = (int) Math.ceil(dataNum / clusterNum);
+		return clusterLimitCount;
+	}
+
+	/**
+	 * データをランダムにクラスタ分け 各クラスタのデータ数の差が1以下になるように振り分ける。
 	 *
 	 * @param data[][]
 	 *            データ
@@ -102,17 +119,16 @@ public class KmeansBeanSimple {
 	 *            データ数=csvLength-1
 	 * @return claster[クラスタ番号]={所属データ番号のリスト}
 	 */
-	public static int[][] classifyRamdom(int[][] data, int clusterNum, int dataNum) {
-		long seed = 0;
+	public static int[][] classifyRamdom(int[][] data, int clusterNum, int dataNum, int clusterLimitCount) {
 		int tmprnd = 99;
 		double rnd;
-		int clusterLimitCount = (int) Math.ceil(dataNum / clusterNum);
+		// int clusterLimitCount = (int) Math.ceil(dataNum / clusterNum);
 		int[][] cluster = new int[clusterNum][clusterLimitCount];
 		int[] clusterCounter = new int[clusterNum];// 初期値0
 
 		for (int i = 0; i < dataNum; i++) {
 			rnd = Math.random();
-			tmprnd = (int)Math.floor(rnd*clusterNum);
+			tmprnd = (int) Math.floor(rnd * clusterNum);
 			if (clusterCounter[tmprnd] == clusterLimitCount) {
 				i--;
 				continue;
@@ -123,14 +139,44 @@ public class KmeansBeanSimple {
 		}
 		return cluster;
 	}
+
+	/**
+	 * 各クラスタの重心を求める
+	 *
+	 * @param cluster[][]
+	 *            クラスタ[クラスタ番号]={所属データの番号のリスト}
+	 * @param data[][]
+	 *            データ[データ番号][項目番号]
+	 *
+	 * @return 重心[クラスタ番号]={値1, 値2}
+	 */
+	public static int[][] calcCog(int clusterNum, int headNum, int[][] cluster, int[][] data, int clusterLimitCount) {
+		int[][] cog = new int[clusterNum][headNum];
+		for (int i = 0; i < clusterNum; i++) {
+			for (int j = 0; j < headNum; j++) {
+				int counter = 0;
+				for (int k = 0; k < clusterLimitCount; k++) {
+					cog[i][j] += data[cluster[i][k]][j];
+					if (data[cluster[i][k]][j] != 0) {// 0でないデータのみ数に入れる。あとでそれで割る。
+						counter++; // しかしデータの正しい値が0の場合が処理できない。後で考える。
+					}
+				}
+				cog[i][j] = cog[i][j] / counter;
+			}
+		}
+		return cog;
+	}
 }
 
 class KmeansBeanSimpleTest {
 	public static void main(String args[]) {
+		int clusterNum = 2;
 		File file = new File("C:\\Eclipse\\Eclipse_oxygen\\workspace\\WhoIsKmean\\csv\\test.csv");// 相対パスのがいい？
 		int csvLength = KmeansBeanSimple.parseCsvLength(file);
 		String[] head = KmeansBeanSimple.parseCsvHead(file);
 		int[][] data = KmeansBeanSimple.parseCsvData(file, csvLength - 1, head.length);
-		int[][] cluster = KmeansBeanSimple.classifyRamdom(data, 2, csvLength - 1);
+		int clusterLimitCount = KmeansBeanSimple.calcClusterLimitCount(2, csvLength - 1);
+		int[][] cluster = KmeansBeanSimple.classifyRamdom(data, clusterNum, csvLength - 1, clusterLimitCount);
+		int[][] cog = KmeansBeanSimple.calcCog(clusterNum, head.length, cluster, data, clusterLimitCount);
 	}
 }
