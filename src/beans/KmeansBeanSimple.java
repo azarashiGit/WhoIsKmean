@@ -125,7 +125,11 @@ public class KmeansBeanSimple {
 		// int clusterLimitCount = (int) Math.ceil(dataNum / clusterNum);
 		int[][] cluster = new int[clusterNum][clusterLimitCount];
 		int[] clusterCounter = new int[clusterNum];// 初期値0
-
+		for (int i = 0; i < clusterNum; i++) {
+			for (int j = 0; j < clusterLimitCount; j++) {
+				cluster[i][j] = -1;// クラスタ[][]の中身初期値-1
+			}
+		}
 		for (int i = 0; i < dataNum; i++) {
 			rnd = Math.random();
 			tmprnd = (int) Math.floor(rnd * clusterNum);
@@ -152,13 +156,15 @@ public class KmeansBeanSimple {
 	 */
 	public static int[][] calcCog(int clusterNum, int headNum, int[][] cluster, int[][] data, int clusterLimitCount) {
 		int[][] cog = new int[clusterNum][headNum];
+		int counter = 0;
+		int j = 0;
 		for (int i = 0; i < clusterNum; i++) {
-			for (int j = 0; j < headNum; j++) {
-				int counter = 0;
+			for (j = 0; j < headNum; j++) {
+				counter = 0;
 				for (int k = 0; k < clusterLimitCount; k++) {
-					cog[i][j] += data[cluster[i][k]][j];
-					if (data[cluster[i][k]][j] != 0) {// 0でないデータのみ数に入れる。あとでそれで割る。
-						counter++; // しかしデータの正しい値が0の場合が処理できない。後で考える。
+					if (cluster[i][k] != -1) {
+						cog[i][j] += data[cluster[i][k]][j];
+						counter++;
 					}
 				}
 				cog[i][j] = cog[i][j] / counter;
@@ -185,14 +191,17 @@ public class KmeansBeanSimple {
 	 *
 	 * @return クラスタ[クラスタ番号]={更新後の所属データの番号のリスト}
 	 */
-	public static int[][] updateCluster(int[][] cog, int[][] data, int[][] cluster, int headNum, int clusterNum,
-			int dataNum) {
-		// 距離=sqrt(Σ(cogの座標-dataの座標)^2)、今回は比べるだけなのでルートしません
+	public static int[][] updateCluster(int[][] cog, int[][] data, int headNum, int clusterNum, int dataNum) {
 		double tmpdist = 0;
-		double dist = 0;
-		int updatedClusterNum = 99;
-		int updatedCluster[][] = new int[clusterNum][headNum];//更新後クラスタ、ArrayListじゃないのでclusterNum個の枠を確保...
+		double dist = Integer.MAX_VALUE;
+		int updatedClusterNum = 99;// 更新後クラスタ番号
+		int updatedCluster[][] = new int[clusterNum][dataNum];// 更新後クラスタ、ArrayListじゃないのでclusterNum個の枠を確保...
 		int counter[] = new int[clusterNum];
+		for (int i = 0; i < clusterNum; i++) {
+			for (int j = 0; j < dataNum; j++) {
+				updatedCluster[i][j] = -1;// 更新後クラスタの中身初期値=-1
+			}
+		}
 
 		for (int k = 0; k < dataNum; k++) {
 			for (int i = 0; i < clusterNum; i++) {
@@ -208,8 +217,24 @@ public class KmeansBeanSimple {
 			updatedCluster[updatedClusterNum][counter[updatedClusterNum]] = k;
 			counter[updatedClusterNum]++;
 		}
-
 		return updatedCluster;
+	}
+
+	/**
+	 * 収束判定メソッド。Conv=Convergence:収束
+	 * 初回収束はなしとする。初回のクラスタ配列と1回更新後のクラスタ配列のサイズが違うので比較できないため。
+	 *
+	 * @return 収束ならtrue、収束しないならfalse
+	 */
+	public static boolean judgeConv(int[][] cluster, int[][] updatedCluster, int clusterNum, int dataNum) {
+		for (int i = 0; i < clusterNum; i++) {
+			for (int j = 0; j < dataNum; j++) {
+				if (cluster[i][j] != updatedCluster[i][j]) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 }
@@ -223,6 +248,19 @@ class KmeansBeanSimpleTest {
 		int[][] data = KmeansBeanSimple.parseCsvData(file, csvLength - 1, head.length);
 		int clusterLimitCount = KmeansBeanSimple.calcClusterLimitCount(2, csvLength - 1);
 		int[][] cluster = KmeansBeanSimple.classifyRamdom(data, clusterNum, csvLength - 1, clusterLimitCount);
-		int[][] cog = KmeansBeanSimple.calcCog(clusterNum, head.length, cluster, data, clusterLimitCount);
+		int loopCounter = 0;
+		int[][] tmpCluster = null;
+		while (true) {
+			int[][] cog = KmeansBeanSimple.calcCog(clusterNum, head.length, cluster, data, clusterLimitCount);
+			int[][] updatedCluster = KmeansBeanSimple.updateCluster(cog, data, head.length, clusterNum, csvLength - 1);
+			if (loopCounter >= 1) {
+				if (KmeansBeanSimple.judgeConv(tmpCluster, updatedCluster, clusterNum, csvLength - 1)) {
+					System.out.println("収束!");
+					break;
+				}
+			}
+			tmpCluster = updatedCluster;
+			loopCounter++;
+		}
 	}
 }
