@@ -145,6 +145,72 @@ public class KmeansBeanSimple {
 	}
 
 	/**
+	 * [未テスト]
+	 * KKZで初期cog決定 データ間距離が最大値をとるデータペアをクラスタ数分用意する。 それらを初期cogとする。
+	 *
+	 * @param data[][]
+	 *            データ
+	 * @param clusterNum
+	 *            クラスタ数
+	 * @param dataNum
+	 *            データ数=csvLength-1
+	 * @return claster[クラスタ番号]={所属データ番号のリスト}
+	 */
+	public static int[][] classifyKKZ(int[][] data, int clusterNum, int dataNum, int headNum, int clusterLimitCount) {
+		// int tmprnd = 99;
+		// double rnd;
+		// // int clusterLimitCount = (int) Math.ceil(dataNum / clusterNum);
+		// 全データ間距離のMAXを求める
+		double maxDist = 0;
+		double tmpDist = 0;
+		int tmpI = 0;
+		int tmpJ = 0;
+		int[][] cog = new int[clusterNum][headNum];
+		for (int i = 0; i < dataNum; i++) {
+			for (int j = 0; j < dataNum; j++) {
+				for (int k = 0; k < headNum; k++) {
+					tmpDist = Math.pow(data[i][k] - data[j][k], 2);
+				}
+				if (tmpDist > maxDist) {
+					maxDist = tmpDist;
+					tmpI = i;
+					tmpJ = j;
+				}
+			}
+		}
+		for (int l = 0; l < headNum; l++) {
+			cog[0][l] = data[tmpI][l];
+			cog[1][l] = data[tmpJ][l];
+		}
+
+		int nowClusterNum = 2;
+
+		// 求めたcog達から最も遠いデータ点を求めて新たなcogとする
+		// 作りたいクラスタ数分回す
+		tmpDist = 0;
+		maxDist = 0;
+		tmpJ = 0;
+		for (int m = 0; m < clusterNum; m++) {
+			for (int j = 0; j < dataNum; j++) {
+				for (int i = 0; i < nowClusterNum; i++) {
+					for (int k = 0; k < headNum; k++) {
+						tmpDist = Math.pow(cog[i][k] - data[j][k], 2);
+					}
+					if (tmpDist > maxDist) {
+						maxDist = tmpDist;
+						tmpJ = j;
+					}
+				}
+			}
+			for (int l = 0; l < headNum; l++) {
+				cog[nowClusterNum][l] = data[tmpJ][l];
+			}
+			nowClusterNum++;
+		}
+		return cog;
+	}
+
+	/**
 	 * 各クラスタの重心を求める
 	 *
 	 * @param cluster[][]
